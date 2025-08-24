@@ -1,0 +1,86 @@
+{
+  "folders": [
+    {
+      "name": "data",
+      "path": "./data"
+    },
+    {
+      "name": "data/raw",
+      "path": "./data/raw"
+    },
+    {
+      "name": "data/processed",
+      "path": "./data/processed"
+    },
+    {
+      "name": "notebooks",
+      "path": "./notebooks"
+    },
+    {
+      "name": "models",
+      "path": "./models"
+    },
+    {
+      "name": "scripts",
+      "path": "./scripts"
+    },
+    {
+      "name": "utils",
+      "path": "./utils"
+    },
+    {
+      "name": "configs",
+      "path": "./configs"
+    },
+    {
+      "name": "results",
+      "path": "./results"
+    },
+    {
+      "name": "docs",
+      "path": "./docs"
+    }
+  ],
+  "files": [
+    {
+      "name": "README.md",
+      "path": "./README.md"
+    },
+    {
+      "name": "requirements.txt",
+      "path": "./requirements.txt"
+    },
+    {
+      "name": "main.py",
+      "path": "./main.py"
+    },
+    {
+      "name": "config.py",
+      "path": "./config.py"
+    },
+    {
+      "name": "data_preprocessing.py",
+      "path": "./scripts/data_preprocessing.py"
+    },
+    {
+      "name": "transformer_model.py",
+      "path": "./models/transformer_model.py"
+    },
+    {
+      "name": "training.py",
+      "path": "./scripts/training.py"
+    },
+    {
+      "name": "evaluation.py",
+      "path": "./scripts/evaluation.py"
+    },
+    {
+      "name": "utils.py",
+      "path": "./utils/utils.py"
+    },
+    {
+      "name": "baseline_models.py",
+      "path": "./models/baseline_models.py"
+    }
+  ]
+}
