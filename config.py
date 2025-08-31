@@ -58,7 +58,7 @@ MODEL_CONFIG = {
     
     # Training settings - More aggressive training
     "batch_size": 16,          # Smaller batches for better learning
-    "learning_rate": 5e-4,     # Higher learning rate
+    "learning_rate": 1e-4,     # Lower learning rate for stability
     "epochs": 150,             # More epochs
     "validation_split": 0.1,
     "test_split": 0.1,
