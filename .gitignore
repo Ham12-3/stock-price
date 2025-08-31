@@ -23,6 +23,7 @@ MANIFEST
 
 # Virtual environments
 stock_price_env/
+stock_env/
 venv/
 env/
 ENV/
