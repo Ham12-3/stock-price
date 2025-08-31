@@ -19,6 +19,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import get_config, MODEL_CONFIG, TRAINING_CONFIG
 from models.transformer_model import build_transformer_model, create_training_callbacks, print_model_summary
 from utils.utils import calculate_metrics, plot_predictions, plot_training_history, save_model_artifacts
+from sklearn.model_selection import TimeSeriesSplit
 
 def load_preprocessed_data(sequences_path=None, metadata_path=None):
     """
@@ -188,6 +189,61 @@ def evaluate_model(model, X_test, y_test, target_scaler=None):
     
     return metrics, y_pred
 
+
+def evaluate_naive_baseline(y_test):
+    """Evaluate a naive persistence baseline on the test targets."""
+    print("\n📊 Evaluating naive baseline...")
+
+    # Flatten to 1D for baseline comparison
+    y_flat = y_test.flatten()
+    # Baseline prediction: previous value
+    baseline_pred = y_flat[:-1]
+    baseline_true = y_flat[1:]
+
+    baseline_metrics = calculate_metrics(baseline_true, baseline_pred)
+    print("📝 Baseline performance:")
+    for metric, value in baseline_metrics.items():
+        if value == float("inf"):
+            print(f"{metric}: ∞")
+        else:
+            print(f"{metric}: {value:.6f}")
+
+    return baseline_metrics
+
+
+def cross_validate_model(X, y, n_splits=5, model_config=None, training_config=None):
+    """Perform time series cross-validation."""
+    if model_config is None:
+        model_config = MODEL_CONFIG
+    if training_config is None:
+        training_config = TRAINING_CONFIG
+
+    tscv = TimeSeriesSplit(n_splits=n_splits)
+    rmses = []
+    fold = 1
+
+    for train_idx, val_idx in tscv.split(X):
+        print(f"\n🔁 Cross-validation fold {fold}/{n_splits}")
+        X_train, X_val = X[train_idx], X[val_idx]
+        y_train, y_val = y[train_idx], y[val_idx]
+
+        model, _ = train_model(
+            X_train,
+            y_train,
+            X_val,
+            y_val,
+            model_config=model_config,
+            training_config=training_config,
+        )
+
+        metrics, _ = evaluate_model(model, X_val, y_val)
+        rmses.append(metrics["RMSE"])
+        fold += 1
+
+    mean_rmse = np.mean(rmses)
+    print(f"\n📊 Average cross-validation RMSE: {mean_rmse:.6f}")
+    return rmses
+
 def create_synthetic_data(num_samples=1000, sequence_length=24, num_features=10):
     """
     Create synthetic data for testing when real data isn't available
@@ -272,7 +328,7 @@ def create_synthetic_data(num_samples=1000, sequence_length=24, num_features=10)
     
     return synthetic_data
 
-def main(use_synthetic_data=True):
+def main(use_synthetic_data=True, perform_cv=False):
     """
     Main training function
     
@@ -311,6 +367,7 @@ def main(use_synthetic_data=True):
         
         # Evaluate model
         metrics, y_pred = evaluate_model(model, X_test, y_test)
+        baseline_metrics = evaluate_naive_baseline(y_test)
         
         # Plot predictions
         plot_predictions(
@@ -326,6 +383,7 @@ def main(use_synthetic_data=True):
             'training_config': TRAINING_CONFIG,
             'metadata': data['metadata'],
             'metrics': metrics,
+            'baseline_metrics': baseline_metrics,
             'training_time': str(datetime.now())
         }
         
@@ -355,7 +413,14 @@ def main(use_synthetic_data=True):
         print(f"   Test RMSE: {metrics['RMSE']:.6f}")
         print(f"   Test MAE: {metrics['MAE']:.6f}")
         print(f"   Test MAPE: {metrics['MAPE']:.2f}%")
+        print(f"   Baseline RMSE: {baseline_metrics['RMSE']:.6f}")
         
+        # Optional cross-validation
+        if perform_cv:
+            combined_X = np.concatenate([X_train, X_val, X_test])
+            combined_y = np.concatenate([y_train, y_val, y_test])
+            cross_validate_model(combined_X, combined_y, n_splits=3)
+
         return model, history, metrics
         
     except Exception as e:
