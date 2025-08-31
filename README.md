@@ -29,6 +29,7 @@ stock-price/
 1. **Set up Python environment** with required packages
 2. **Choose and download dataset** (stock prices + external features)
 3. **Explore data structure** and identify key features
+4. **Validate downloaded data** for missing dates, duplicates, and non-positive values
 
 ### Phase 2: Data Preprocessing
 1. **Handle missing values** and outliers
