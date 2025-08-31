@@ -62,10 +62,61 @@ def download_stock_data(symbol, start_date, end_date, interval='1d'):
         
         print(f"✅ Downloaded {len(data)} rows of data for {symbol}")
         return data
-        
+
     except Exception as e:
         print(f"❌ Error downloading data for {symbol}: {str(e)}")
         return pd.DataFrame()
+
+
+def validate_stock_data(data, start_date, end_date, interval='1d'):
+    """Validate downloaded stock data for completeness and quality.
+
+    Checks for duplicate dates, missing trading days, non-positive values, and
+    missing entries. Warns and filters data accordingly.
+
+    Args:
+        data (pd.DataFrame): Raw stock data with a 'date' column
+        start_date (str): Expected start date in ``YYYY-MM-DD`` format
+        end_date (str): Expected end date in ``YYYY-MM-DD`` format
+        interval (str): Data frequency (currently supports ``'1d'``)
+
+    Returns:
+        pd.DataFrame: Validated and cleaned stock data
+    """
+    df = data.copy()
+    if df.empty:
+        return df
+
+    print("🧪 Validating downloaded data...")
+    df['date'] = pd.to_datetime(df['date'])
+
+    # Remove duplicate dates
+    before = len(df)
+    df = df.drop_duplicates(subset='date')
+    if len(df) < before:
+        print(f"⚠️  Removed {before - len(df)} duplicate rows")
+
+    # Check for missing trading days
+    if interval == '1d':
+        expected = pd.bdate_range(start=start_date, end=end_date)
+        missing = expected.difference(df['date'])
+        if not missing.empty:
+            print(f"⚠️  Missing {len(missing)} expected trading days")
+
+    # Drop rows with non-positive prices or volumes
+    numeric_cols = ['open', 'high', 'low', 'close', 'volume']
+    invalid = (df[numeric_cols] <= 0).any(axis=1)
+    if invalid.any():
+        print(f"⚠️  Dropping {invalid.sum()} rows with non-positive values")
+        df = df[~invalid]
+
+    # Forward fill missing values if any
+    if df.isna().any().any():
+        missing_count = df.isna().sum().sum()
+        print(f"⚠️  Found {missing_count} missing values; forward filling")
+        df = df.ffill()
+
+    return df
 
 def calculate_technical_indicators(data):
     """
@@ -246,11 +297,19 @@ def main():
         DATA_CONFIG['end_date'],
         DATA_CONFIG['data_frequency']
     )
-    
+
     if stock_data.empty:
         print("❌ Failed to download stock data. Exiting.")
         return None
-    
+
+    # Step 1b: Validate and clean downloaded data
+    stock_data = validate_stock_data(
+        stock_data,
+        DATA_CONFIG['start_date'],
+        DATA_CONFIG['end_date'],
+        DATA_CONFIG['data_frequency']
+    )
+
     # Step 2: Calculate technical indicators
     stock_data = calculate_technical_indicators(stock_data)
     
