@@ -1,0 +1,89 @@
+{
+  "model_config": {
+    "d_model": 64,
+    "num_heads": 8,
+    "num_layers": 4,
+    "ff_dim": 128,
+    "dropout_rate": 0.1,
+    "sequence_length": 24,
+    "forecast_horizon": 1,
+    "batch_size": 16,
+    "learning_rate": 0.0005,
+    "epochs": 150,
+    "validation_split": 0.1,
+    "test_split": 0.1,
+    "early_stopping_patience": 25,
+    "reduce_lr_patience": 8,
+    "reduce_lr_factor": 0.3,
+    "min_lr": 1e-08
+  },
+  "training_config": {
+    "train_ratio": 0.8,
+    "val_ratio": 0.1,
+    "test_ratio": 0.1,
+    "save_best_model": true,
+    "save_training_history": true,
+    "model_save_path": "/home/abdulhamid/stock-price/models/best_transformer.h5",
+    "history_save_path": "/home/abdulhamid/stock-price/results/training_history.json",
+    "tensorboard_logs": "/home/abdulhamid/stock-price/results/logs",
+    "save_plots": true,
+    "plot_save_path": "/home/abdulhamid/stock-price/results/plots"
+  },
+  "metadata": {
+    "feature_columns": [
+      "low",
+      "volume",
+      "rsi",
+      "macd_signal",
+      "macd_histogram",
+      "volume_sma_20",
+      "volume_ratio",
+      "close_rolling_std_5",
+      "close_rolling_std_10",
+      "close_rolling_std_20",
+      "spy_close",
+      "qqq_close"
+    ],
+    "target_column": "close",
+    "sequence_length": 24,
+    "forecast_horizon": 1,
+    "num_features": 12,
+    "data_shapes": {
+      "X_train": [
+        68,
+        24,
+        12
+      ],
+      "y_train": [
+        68,
+        1
+      ],
+      "X_val": [
+        68,
+        24,
+        12
+      ],
+      "y_val": [
+        68,
+        1
+      ],
+      "X_test": [
+        547,
+        24,
+        12
+      ],
+      "y_test": [
+        547,
+        1
+      ]
+    }
+  },
+  "metrics": {
+    "MSE": 0.6900569967705056,
+    "RMSE": 0.8306966936075438,
+    "MAE": 0.70939515031826,
+    "MAPE": 33.65689478177505,
+    "MAE_Percentage": 37.07244301033435
+  },
+  "training_time": "2025-08-31 20:24:49.839099"
+}

@@ -1,7 +1,7 @@
-# Time Series Forecasting with External Influences: A Transformer-Based Approach
+# Stock Price Forecaster: AI-Powered Market Prediction
 
 ## Project Overview
-Build a Transformer-based model to forecast stock prices using both historical price data and external signals (related time series, news sentiment, etc.) using TensorFlow's Transformer architecture.
+An intelligent stock price forecasting system that uses advanced Transformer-based machine learning to predict stock market movements. This project combines historical price data with external market signals (news sentiment, economic indicators, related time series) to provide accurate stock price predictions using TensorFlow's Transformer architecture.
 
 ## Why It's Challenging
 - Involves sequence modeling over temporal data plus handling multivariate inputs (lags, exogenous variables)

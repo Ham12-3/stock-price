@@ -1,0 +1,48 @@
+{
+  "feature_columns": [
+    "low",
+    "volume",
+    "rsi",
+    "macd_line",
+    "macd_signal",
+    "macd_histogram",
+    "volume_sma_20",
+    "volume_ratio",
+    "close_rolling_std_5",
+    "close_rolling_std_10",
+    "close_rolling_std_20"
+  ],
+  "target_column": "close",
+  "sequence_length": 24,
+  "forecast_horizon": 1,
+  "num_features": 11,
+  "data_shapes": {
+    "X_train": [
+      94,
+      24,
+      11
+    ],
+    "y_train": [
+      94,
+      1
+    ],
+    "X_val": [
+      94,
+      24,
+      11
+    ],
+    "y_val": [
+      94,
+      1
+    ],
+    "X_test": [
+      752,
+      24,
+      11
+    ],
+    "y_test": [
+      752,
+      1
+    ]
+  }
+}

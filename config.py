@@ -56,18 +56,18 @@ MODEL_CONFIG = {
     "sequence_length": 24,   # Input sequence length (e.g., 24 days)
     "forecast_horizon": 1,   # Number of steps to forecast
     
-    # Training settings
-    "batch_size": 32,
-    "learning_rate": 1e-4,
-    "epochs": 100,
-    "validation_split": 0.15,
-    "test_split": 0.15,
+    # Training settings - More aggressive training
+    "batch_size": 16,          # Smaller batches for better learning
+    "learning_rate": 5e-4,     # Higher learning rate
+    "epochs": 150,             # More epochs
+    "validation_split": 0.1,
+    "test_split": 0.1,
     
-    # Callbacks
-    "early_stopping_patience": 15,
-    "reduce_lr_patience": 5,
-    "reduce_lr_factor": 0.5,
-    "min_lr": 1e-7,
+    # Callbacks - More patient training
+    "early_stopping_patience": 25,    # More patience
+    "reduce_lr_patience": 8,          # More patience before reducing LR  
+    "reduce_lr_factor": 0.3,          # Bigger LR reduction
+    "min_lr": 1e-8,
 }
 
 # Data preprocessing configuration
@@ -90,10 +90,10 @@ PREPROCESSING_CONFIG = {
 
 # Training configuration
 TRAINING_CONFIG = {
-    # Data splitting
-    "train_ratio": 0.7,
-    "val_ratio": 0.15,
-    "test_ratio": 0.15,
+    # Data splitting - More training data
+    "train_ratio": 0.8,
+    "val_ratio": 0.1,
+    "test_ratio": 0.1,
     
     # Callbacks
     "save_best_model": True,

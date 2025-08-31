@@ -1,0 +1,32 @@
+# Laptop-Friendly Requirements (CPU-only, no heavy packages)
+# Core deep learning framework (CPU version)
+tensorflow>=2.10.0
+
+# Data manipulation and analysis
+pandas>=1.5.0
+numpy>=1.21.0
+scipy>=1.9.0
+
+# Machine learning utilities
+scikit-learn>=1.1.0
+statsmodels>=0.13.0
+
+# Visualization
+matplotlib>=3.5.0
+seaborn>=0.11.0
+
+# Time series specific
+yfinance>=0.1.87
+
+# Utilities
+tqdm>=4.64.0
+python-dotenv>=0.19.0
+pyyaml>=6.0
+
+# Optional lightweight packages (comment out if causing issues)
+# plotly>=5.0.0
+# prophet>=1.1.0
+# alpha-vantage>=2.3.0
+# jupyter>=1.0.0
+# ipykernel>=6.0.0
+# notebook>=6.4.0
