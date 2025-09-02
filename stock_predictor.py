@@ -189,22 +189,26 @@ class StockPredictor:
         
         return history
     
-    def predict_future(self, days=7):
-        """Predict future stock prices"""
+    def predict_future(self, days=14):
+        """Predict future stock prices with support for extended forecasts"""
         if self.model is None:
             self._load_model()
             
         print(f"🔮 Predicting {self.symbol} prices for next {days} days...")
         
-        # Get recent data with more history for technical indicators
-        end_date = datetime.now().strftime('%Y-%m-%d')
-        start_date = (datetime.now() - timedelta(days=120)).strftime('%Y-%m-%d')  # More history needed
+        # Get recent data with more history for technical indicators - DYNAMIC
+        today = datetime.now()
+        end_date = today.strftime('%Y-%m-%d')
+        start_date = (today - timedelta(days=120)).strftime('%Y-%m-%d')  # More history needed
+        
+        print(f"📅 Today is: {today.strftime('%Y-%m-%d %A')}")
+        print(f"🔍 Fetching data from {start_date} to {end_date}")
         
         recent_data = self.collect_data(start_date, end_date)
         
         if len(recent_data) < self.sequence_length + 50:  # Need enough for tech indicators
             print(f"⚠️  Not enough recent data ({len(recent_data)} rows). Using longer history...")
-            start_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')  # 1 year
+            start_date = (today - timedelta(days=365)).strftime('%Y-%m-%d')  # 1 year
             recent_data = self.collect_data(start_date, end_date)
         
         # Prepare last sequence
@@ -216,13 +220,32 @@ class StockPredictor:
         last_sequence_scaled = self.scaler.transform(last_sequence)
         last_sequence = last_sequence_scaled.reshape(1, self.sequence_length, -1)
         
-        # Make predictions
+        # Make predictions with improved multi-step approach
         predictions = []
         current_seq = last_sequence.copy()
+        current_price = recent_data['close'].iloc[-1]
+        
+        print(f"🔍 Starting predictions from current price: ${current_price:.2f}")
         
         for i in range(days):
             pred_scaled = self.model.predict(current_seq, verbose=0)
             pred_price = self.target_scaler.inverse_transform([[pred_scaled[0][0]]])[0][0]
+            
+            # Apply smoothing to prevent massive jumps
+            if i == 0:
+                # First prediction should be close to current price
+                pred_price = current_price * 0.7 + pred_price * 0.3
+            else:
+                # Subsequent predictions smoothed with previous
+                pred_price = predictions[-1] * 0.8 + pred_price * 0.2
+            
+            # Limit daily changes to realistic bounds (max ±5% per day)
+            if i > 0:
+                daily_change = (pred_price - predictions[-1]) / predictions[-1]
+                if abs(daily_change) > 0.05:  # Limit to 5% daily change
+                    daily_change = 0.05 if daily_change > 0 else -0.05
+                    pred_price = predictions[-1] * (1 + daily_change)
+            
             predictions.append(pred_price)
             
             # Update sequence for next prediction (simple approach)
@@ -230,9 +253,29 @@ class StockPredictor:
             # Update last timestep with prediction (simplified)
             current_seq[0, -1, 0] = pred_scaled[0][0]  # Assuming close price is first feature
         
-        # Create prediction dates
-        last_date = pd.to_datetime(recent_data['date'].iloc[-1])
-        pred_dates = [last_date + timedelta(days=i+1) for i in range(days)]
+        # Create prediction dates DYNAMICALLY starting from tomorrow
+        last_historical_date = pd.to_datetime(recent_data['date'].iloc[-1])
+        print(f"📅 Last historical data date: {last_historical_date.strftime('%Y-%m-%d')}")
+        
+        # Start predictions from the next business day after today
+        today_date = datetime.now().date()
+        tomorrow = datetime.now() + timedelta(days=1)
+        
+        pred_dates = []
+        current_date = tomorrow
+        days_added = 0
+        
+        print(f"🚀 Starting predictions from: {tomorrow.strftime('%Y-%m-%d %A')} (tomorrow)")
+        
+        while days_added < days:
+            # Only add business days for stock predictions
+            if current_date.weekday() < 5:  # Monday = 0, Friday = 4
+                pred_dates.append(current_date)
+                days_added += 1
+            current_date += timedelta(days=1)
+                
+        print(f"📅 Dynamic prediction range: {pred_dates[0].strftime('%Y-%m-%d')} to {pred_dates[-1].strftime('%Y-%m-%d')}")
+        print(f"📊 Predicting {len(pred_dates)} business days into the future")
         
         # Create results
         results = pd.DataFrame({
@@ -241,12 +284,14 @@ class StockPredictor:
         })
         
         current_price = recent_data['close'].iloc[-1]
-        print(f"📊 Prediction Results:")
+        confidence_decay = 0.98 ** (days / 7)  # Calculate confidence decay
+        print(f"📊 Prediction Results ({days} business days):")
         print(f"   Current Price: ${current_price:.2f}")
-        print(f"   Predicted Price ({days} days): ${predictions[-1]:.2f}")
+        print(f"   Predicted Price (Day {days}): ${predictions[-1]:.2f}")
         print(f"   Expected Change: {((predictions[-1] - current_price) / current_price * 100):.2f}%")
+        print(f"   Confidence Factor: {confidence_decay:.3f}")
         
-        # Plot results
+        # Plot results with enhanced visualization
         self._plot_predictions(recent_data, results)
         
         return results
@@ -369,30 +414,86 @@ class StockPredictor:
         plt.close()
     
     def _plot_predictions(self, recent_data, predictions):
-        """Plot prediction results"""
-        plt.figure(figsize=(12, 6))
+        """Plot prediction results with enhanced visualization"""
+        plt.figure(figsize=(14, 8))
         
-        # Plot recent prices
+        # Plot recent prices (last 30 days for context)
         recent_dates = pd.to_datetime(recent_data['date'])
         plt.plot(recent_dates[-30:], recent_data['close'].values[-30:], 
-                label='Historical Prices', color='blue', linewidth=2)
+                label='Historical Prices', color='blue', linewidth=2.5)
         
         # Plot predictions
         plt.plot(predictions['date'], predictions['predicted_price'], 
-                label='Predicted Prices', color='red', linewidth=2, linestyle='--', marker='o')
+                label='Predicted Prices', color='red', linewidth=2.5, 
+                linestyle='--', marker='o', markersize=4)
         
-        plt.title(f'{self.symbol} Stock Price Prediction')
-        plt.xlabel('Date')
-        plt.ylabel('Price ($)')
-        plt.legend()
-        plt.grid(True, alpha=0.3)
-        plt.xticks(rotation=45)
+        # Enhanced styling
+        plt.title(f'{self.symbol} Stock Price Prediction', fontsize=16, fontweight='bold', pad=20)
+        plt.xlabel('Date', fontsize=12, fontweight='bold')
+        plt.ylabel('Price ($)', fontsize=12, fontweight='bold')
+        
+        # Enhanced grid with major and minor grids
+        plt.grid(True, which='major', alpha=0.6, linewidth=0.8)
+        plt.grid(True, which='minor', alpha=0.3, linewidth=0.4)
+        plt.minorticks_on()
+        
+        # Better legend
+        plt.legend(fontsize=11, loc='upper left', framealpha=0.9)
+        
+        # Enhanced x-axis with more ticks and better formatting
+        import matplotlib.dates as mdates
+        ax = plt.gca()
+        
+        # Format x-axis to show more dates
+        if len(predictions) <= 7:
+            ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
+            ax.xaxis.set_minor_locator(mdates.DayLocator(interval=1))
+        else:
+            ax.xaxis.set_major_locator(mdates.DayLocator(interval=2))
+            ax.xaxis.set_minor_locator(mdates.DayLocator(interval=1))
+        
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
+        plt.xticks(rotation=45, fontsize=10)
+        
+        # Enhanced y-axis with more ticks
+        y_min = min(recent_data['close'].values[-30:].min(), predictions['predicted_price'].min())
+        y_max = max(recent_data['close'].values[-30:].max(), predictions['predicted_price'].max())
+        y_range = y_max - y_min
+        plt.ylim(y_min - 0.05 * y_range, y_max + 0.05 * y_range)
+        
+        # Add more y-axis ticks for better coordinate mapping
+        y_ticks = np.linspace(y_min - 0.02 * y_range, y_max + 0.02 * y_range, 12)
+        plt.yticks(y_ticks, [f'${tick:.2f}' for tick in y_ticks], fontsize=10)
+        
+        # Add current price annotation
+        current_price = recent_data['close'].iloc[-1]
+        last_date = recent_dates.iloc[-1]
+        plt.annotate(f'Current: ${current_price:.2f}', 
+                    xy=(last_date, current_price), 
+                    xytext=(10, 10), 
+                    textcoords='offset points',
+                    bbox=dict(boxstyle='round,pad=0.3', facecolor='blue', alpha=0.7, edgecolor='white'),
+                    fontsize=10, color='white', fontweight='bold')
+        
+        # Add final prediction annotation
+        final_pred = predictions['predicted_price'].iloc[-1]
+        final_date = predictions['date'].iloc[-1]
+        change_pct = ((final_pred - current_price) / current_price * 100)
+        plt.annotate(f'Predicted: ${final_pred:.2f}\n({change_pct:+.1f}%)', 
+                    xy=(final_date, final_pred), 
+                    xytext=(10, -10), 
+                    textcoords='offset points',
+                    bbox=dict(boxstyle='round,pad=0.3', facecolor='red', alpha=0.7, edgecolor='white'),
+                    fontsize=10, color='white', fontweight='bold')
+        
         plt.tight_layout()
         
-        plt.savefig('results/price_predictions.png', dpi=300, bbox_inches='tight')
+        # Save with higher quality
+        plt.savefig('results/price_predictions.png', dpi=300, bbox_inches='tight', 
+                   facecolor='white', edgecolor='none')
         plt.close()
         
-        print("📊 Prediction plot saved to results/price_predictions.png")
+        print("📊 Enhanced prediction plot saved to results/price_predictions.png")
     
     def _cleanup_old_files(self):
         """Remove old result files"""

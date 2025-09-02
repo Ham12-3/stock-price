@@ -19,7 +19,7 @@ from config import get_config, DATA_CONFIG, FILE_PATHS
 
 def download_stock_data(symbol, start_date, end_date, interval='1d'):
     """
-    Download stock data from Yahoo Finance
+    Download stock data from Yahoo Finance with improved data quality
     
     Args:
         symbol (str): Stock symbol (e.g., 'AAPL')
@@ -36,8 +36,14 @@ def download_stock_data(symbol, start_date, end_date, interval='1d'):
         # Create ticker object
         ticker = yf.Ticker(symbol)
         
-        # Download historical data
-        data = ticker.history(start=start_date, end=end_date, interval=interval)
+        # Download historical data with improved parameters
+        data = ticker.history(
+            start=start_date, 
+            end=end_date, 
+            interval=interval,
+            auto_adjust=True,  # Adjust for splits and dividends
+            prepost=False      # No pre/post market data
+        )
         
         if data.empty:
             raise ValueError(f"No data found for symbol {symbol}")
@@ -58,9 +64,17 @@ def download_stock_data(symbol, start_date, end_date, interval='1d'):
         
         # Remove dividends and stock splits columns if present
         columns_to_keep = ['date', 'open', 'high', 'low', 'close', 'volume']
-        data = data[columns_to_keep]
+        available_cols = [col for col in columns_to_keep if col in data.columns]
+        data = data[available_cols]
         
-        print(f"✅ Downloaded {len(data)} rows of data for {symbol}")
+        # Ensure we have the minimum required data
+        if len(data) < 100:  # Need at least 100 days for meaningful analysis
+            print(f"⚠️  Warning: Only {len(data)} days of data available for {symbol}")
+        
+        # Sort by date to ensure chronological order
+        data = data.sort_values('date').reset_index(drop=True)
+        
+        print(f"✅ Downloaded {len(data)} rows of high-quality data for {symbol}")
         return data
 
     except Exception as e:

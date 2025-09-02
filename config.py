@@ -24,8 +24,8 @@ for directory in [DATA_DIR, RAW_DATA_DIR, PROCESSED_DATA_DIR, MODELS_DIR, RESULT
 DATA_CONFIG = {
     # Stock data settings
     "stock_symbol": "AAPL",  # Default stock symbol
-    "start_date": "2020-01-01",
-    "end_date": "2023-12-31",
+    "start_date": "2022-01-01",
+    "end_date": "2025-09-01",  # Updated to current date
     "data_frequency": "1d",  # Daily data
     
     # Technical indicators
