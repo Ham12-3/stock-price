@@ -1,0 +1,29 @@
+# Advanced Stock Prediction System Requirements
+# Core ML and Data Science
+tensorflow>=2.13.0
+numpy>=1.21.0
+pandas>=1.5.0
+scikit-learn>=1.1.0
+matplotlib>=3.5.0
+seaborn>=0.11.0
+
+# Financial Data and APIs
+yfinance>=0.2.0
+python-newsapi>=0.2.6
+
+# NLP and Sentiment Analysis
+transformers>=4.21.0
+torch>=1.12.0
+datasets>=2.5.0
+
+# Additional utilities
+requests>=2.28.0
+beautifulsoup4>=4.11.0
+lxml>=4.9.0
+
+# Optional GPU support (comment out if not needed)
+# tensorflow-gpu>=2.13.0
+
+# Development and testing
+pytest>=7.0.0
+jupyter>=1.0.0

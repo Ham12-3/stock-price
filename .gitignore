@@ -63,3 +63,20 @@ logs/
 # TensorFlow
 *.pb
 *.pbtxt
+
+# Training Results (Can be regenerated)
+results/training_history.json
+results/price_predictions.png
+
+# Environment Variables
+.env
+.env.local
+
+# Cache and Temporary Files
+.cache/
+*.tmp
+*.temp
+
+# Large Data Files
+*.csv
+data/
