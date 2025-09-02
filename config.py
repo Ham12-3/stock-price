@@ -52,6 +52,16 @@ MODEL_CONFIG = {
     "ff_dim": 128,           # Feed-forward dimension
     "dropout_rate": 0.1,     # Dropout rate
     
+    # Positional encoding options: 'learned', 'rope', 'legacy'
+    "pos_encoding_type": "learned",   # Use learned embeddings (best for fixed sequences)
+    
+    # Advanced Attention Settings (Major Performance Boost!)
+    "use_advanced_attention": True,   # Use advanced encoder blocks with better architecture
+    "causal_masking": True,          # Prevent future peeking (essential for forecasting)
+    "local_window": 14,              # Limit attention to +/- 14 days (None for global)
+    "use_swiglu": True,              # Use SwiGLU MLP (better than standard)
+    "mlp_ratio": 4,                  # MLP expansion ratio (4x is optimal)
+    
     # Sequence settings
     "sequence_length": 24,   # Input sequence length (e.g., 24 days)
     "forecast_horizon": 1,   # Number of steps to forecast

@@ -260,13 +260,21 @@ class StockPredictor:
         
         try:
             # Import custom objects for loading
-            from models.transformer_model import TimeSeriesTransformer, TransformerEncoderBlock, PositionalEncoding
+            from models.transformer_model import (TimeSeriesTransformer, TransformerEncoderBlock, 
+                                                PositionalEncoding, LearnedPositionalEmbedding,
+                                                RoPEMultiHeadSelfAttention, RoPETransformerEncoderBlock,
+                                                AdvancedTransformerEncoderBlock, AdvancedRoPEMultiHeadSelfAttention)
             
             # Load model with custom objects
             custom_objects = {
                 'TimeSeriesTransformer': TimeSeriesTransformer,
                 'TransformerEncoderBlock': TransformerEncoderBlock,
-                'PositionalEncoding': PositionalEncoding
+                'PositionalEncoding': PositionalEncoding,
+                'LearnedPositionalEmbedding': LearnedPositionalEmbedding,
+                'RoPEMultiHeadSelfAttention': RoPEMultiHeadSelfAttention,
+                'RoPETransformerEncoderBlock': RoPETransformerEncoderBlock,
+                'AdvancedTransformerEncoderBlock': AdvancedTransformerEncoderBlock,
+                'AdvancedRoPEMultiHeadSelfAttention': AdvancedRoPEMultiHeadSelfAttention
             }
             
             self.model = tf.keras.models.load_model(self.model_path, custom_objects=custom_objects)
@@ -291,7 +299,8 @@ class StockPredictor:
                 num_layers=model_config['num_layers'],
                 ff_dim=model_config['ff_dim'],
                 dropout_rate=model_config['dropout_rate'],
-                forecast_horizon=model_config['forecast_horizon']
+                forecast_horizon=model_config['forecast_horizon'],
+                pos_encoding_type=model_config.get('pos_encoding_type', 'learned')
             )
             
             # Load only the weights
